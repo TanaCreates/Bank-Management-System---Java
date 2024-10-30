@@ -1,0 +1,19 @@
+       public static void insertUser(int userID, String lastName, String idNumber, String username, String password) {
+           String query = "INSERT INTO userdetails (user_id, lastName, idNumber, username, password) VALUES (?, ?, ?, ?, ?)";
+           try (Connection connection = getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+               statement.setInt(1, userID);
+               statement.setString(2, lastName);
+               statement.setString(3, idNumber);
+               statement.setString(4, username);
+               statement.setString(5, password);
+               int rowsInserted = statement.executeUpdate();
+               if (rowsInserted > 0) {
+                   System.out.println("User registered successfully!");
+               } else {
+                   System.out.println("Failed to register user.");
+               }
+           } catch (SQLException e) {
+               System.out.println("Error registering user: " + e.getMessage());
+           }
+       }
