@@ -1,0 +1,20 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+
+public class MzanziBank {
+    private Map<String, User> users = new HashMap<>();
+    private User currentUser = null;
+
+    private static final String databaseURL = "jdbc:mysql://localhost:3306/bank_database";
+    private static final String username = "root";
+    private static final String password = "Nyabanga2004!";
+    private static final int userId = 0;
+
+     public static Connection getConnection() throws SQLException
+      {
+           return DriverManager.getConnection(databaseURL, username, password);
+       }
