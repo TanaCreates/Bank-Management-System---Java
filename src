@@ -1,0 +1,533 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+
+public class MzanziBank {
+    private Map<String, User> users = new HashMap<>();
+    private User currentUser = null;
+
+    private static final String databaseURL = "jdbc:mysql://localhost:3306/bank_database";
+    private static final String username = "root";
+    private static final String password = "Nyabanga2004!";
+    private static final int userId = 0;
+
+     public static Connection getConnection() throws SQLException
+      {
+           return DriverManager.getConnection(databaseURL, username, password);
+       }
+   
+       public static void insertUser(int userID, String lastName, String idNumber, String username, String password) {
+           String query = "INSERT INTO userdetails (user_id, lastName, idNumber, username, password) VALUES (?, ?, ?, ?, ?)";
+           try (Connection connection = getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+               statement.setInt(1, userID);
+               statement.setString(2, lastName);
+               statement.setString(3, idNumber);
+               statement.setString(4, username);
+               statement.setString(5, password);
+               int rowsInserted = statement.executeUpdate();
+               if (rowsInserted > 0) {
+                   System.out.println("User registered successfully!");
+               } else {
+                   System.out.println("Failed to register user.");
+               }
+           } catch (SQLException e) {
+               System.out.println("Error registering user: " + e.getMessage());
+           }
+       }
+       // Insert transaction information into the database
+    public static void insertTransaction(int userID, String accountNumber, String transactionType, double amount, double balance) {
+        String query = "INSERT INTO transaction_details (transaction_id, user_id, account_number, transaction_type, amount, balance) VALUES (?, ?, ?, ?, ?)";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+        	statement.setInt(1, userID);
+            statement.setString(2, accountNumber);
+            statement.setString(3, transactionType);
+            statement.setDouble(4, amount);
+            statement.setDouble(5, balance);
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("Transaction recorded successfully!");
+            } else {
+                System.out.println("Failed to record transaction.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error recording transaction: " + e.getMessage());}
+        }
+
+        public static void viewAccount(int userId) {
+            try {
+               Connection connection = getConnection();
+                String query = "SELECT * FROM transaction_details WHERE user_id = ?";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, userId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+        
+                System.out.println("=== Viewing Account ===");
+                boolean found = false;
+                while (resultSet.next()) {
+                    // Retrieve values from the result set
+                    String accountNumber = resultSet.getString("account_number");
+                    double balance = resultSet.getDouble("balance");
+                    // Assuming you have 'lastName' column in 'userdetails' table
+                    String lastName = resultSet.getString("lastName");
+        
+                    // Print account details
+                    System.out.println("Account number: " + accountNumber);
+                    System.out.println("Balance : R" + balance);
+                    System.out.println("Last Name: " + lastName);
+                    
+                    // Set found to true if at least one account is found
+                    found = true;
+                }
+                
+                if (!found) {
+                    System.out.println("No accounts found for this user.");
+                }
+        
+                // Close resources
+                resultSet.close();
+                preparedStatement.close();
+            } catch (SQLException e) {
+                System.out.println("Error viewing account: " + e.getMessage());
+            }
+        }
+        
+        
+    public static void main(String[] args) {
+        MzanziBank aunthentication = new MzanziBank();
+        aunthentication.start();
+    }
+
+    public void start() {
+        Scanner scanner = new Scanner(System.in);
+        boolean running = true;
+        do {System.out.println("MAIN MENU");
+            System.out.println("1. Register");
+            System.out.println("2. Login");
+            System.out.println("3. Logout");
+            System.out.println("4. Exit");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline character after nextInt()
+
+            switch (choice) {
+                case 1:
+                    registerUser(scanner);
+                    break;
+                case 2:
+                    loginUser(scanner);
+                    break;
+                case 3:
+                    logoutUser();
+                    break;
+                case 4:
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+                    break;
+            }
+        } while (running);
+        
+        scanner.close();
+    }
+
+    private void registerUser(Scanner scanner) {
+        
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+        System.out.println("Please enter your first name:");
+        String fname = scanner.nextLine();
+        System.out.println("Please enter your last name:");
+        String lname = scanner.nextLine();
+        System.out.println("Please enter your identification number:");
+        String idnum = scanner.nextLine();
+
+        if (!users.containsKey(username)) {
+            User user = new User(username, password);
+            users.put(username, user);
+            System.out.println("Registration successful.");
+            int userId = generateRandomUserId();
+            System.out.println("Your new user id is: " + userId);
+
+            MzanziBank.insertUser(userId, lname, idnum,username, password); 
+
+        } else {
+            System.out.println("Username already exists. Please choose another one.");
+        }
+    }
+
+    private void loginUser(Scanner scanner) {
+        System.out.print("Enter user id: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+
+        if (users.containsKey(username) && users.get(username).getPassword().equals(password)) {
+            currentUser = users.get(username);
+            System.out.println("Login successful. \n Welcome, " + currentUser.getUsername() + "!");
+
+            SystemMenu openingmenu = new SystemMenu();
+            openingmenu.SystemMenuOptions(userId);
+            
+            
+        } else {
+            System.out.println("Invalid username or password. Please try again.");
+        }
+    }
+
+    public void logoutUser() {
+        if (currentUser != null) {
+            System.out.println("Logout successful. Goodbye, " + currentUser.getUsername() + "!");
+            currentUser = null;
+        } else {
+            System.out.println("No user currently logged in.");
+        }
+    }
+
+    public static int generateRandomUserId() {
+        Random random = new Random();
+        // Generate a random integer between 1000000 and 9999999
+        int userId = random.nextInt(9000000) + 1000000;
+        return userId;
+    }
+}
+
+class User {
+    private String username;
+    private String password;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+}
+
+
+
+class SystemMenu{
+
+    Scanner sc = new Scanner(System.in);
+    void SystemMenuOptions(int userId){
+
+    System.out.println("==== Main Menu ====");
+        System.out.println(" 1. Create a new account");
+        System.out.println(" 2. View existion accounts");
+        System.out.println(" 3. Perform transaction");
+        System.out.println(" 4. Logout");
+        System.out.println(" Enter your choice:");
+        int choice = sc.nextInt();
+
+        switch(choice)
+        {
+            case 1:
+                    
+
+            break;
+
+            case 2:
+           
+            break;
+
+            case 3: Transactions tran = new Transactions();
+                    tran.transactionMenu();
+            break;
+
+            case 4: MzanziBank out = new MzanziBank();
+                    out.logoutUser();
+            break;
+
+
+
+        }
+    }
+
+}
+class Transactions {
+    Scanner choice = new Scanner(System.in);
+
+    void transactionMenu() {
+        System.out.println("==== Perform Transaction ====");
+        System.out.println(" 1. Perform transaction with Savings Account");
+        System.out.println(" 2. Perform transaction with Checking Account");
+        System.out.println(" 3. Go back to main menu");
+
+        System.out.println("Enter your choice:");
+        int option = choice.nextInt();
+        choice.nextLine(); // Consume newline character
+
+        switch (option) {
+            case 1:
+               BankAccount view = new BankAccount("22589", 700);
+               view.checkBalance();
+                performTransactionWithSavingsAccount();
+                break;
+            case 2:
+                performTransactionWithCheckingAccount();
+                break;
+            case 3:
+            MzanziBank menu = new MzanziBank();
+            menu.start();
+                break;
+            default:
+                System.out.println("Invalid option. Please try again.");
+                break;
+        }
+    }
+
+    private void performTransactionWithSavingsAccount() {
+
+        Scanner scan = new Scanner(System.in);
+       System.out.println("===Performing Transaction with Savings Account");
+       System.out.println("1. Depost");
+       System.out.println("2. Withdraw");
+       System.out.println("3. Transfer funds");
+       System.out.println("4. Bank to menu");
+       System.out.println("Please enter your option:");
+       int op = scan.nextInt();
+       switch(op)
+       {
+        //depositing into savings Account
+        case 1: System.out.println("Enter the amount you want to deposit: R");
+        
+        double damount = scan.nextInt();
+        SavingsAccount dep = new SavingsAccount("22589", 700, 15);
+                dep.deposit(damount);
+        break;
+
+        // withdrawing from savingsaccount
+        case 2:System.out.print("Enter amount to withdraw: ");
+        double withdrawAmount =scan.nextInt();
+        SavingsAccount withdrawAcc = new SavingsAccount("AccountNumber", 7000, 2);
+            try {
+                withdrawAcc.withdraw(withdrawAmount);
+            } catch (InsufficientFundsException e) {
+                e.printStackTrace();
+            } catch (InvalidTransactionException e) {
+                e.printStackTrace();
+            }
+        break;
+            
+
+// Transfer funds from SavingsAccount to CheckingAccount
+        case 3:System.out.print("Enter amount to transfer: ");
+        double transferfunds = scan.nextInt();
+        SavingsAccount transferOp = new SavingsAccount("2540 254 25", 00, 2);
+        CheckingAccount checkingAccount = new CheckingAccount("255 447 89", 1005, 1001);
+
+            try {
+                transferOp.transferFunds(checkingAccount, transferfunds);
+            } catch (InsufficientFundsException e) {
+              
+                e.printStackTrace();
+            } catch (InvalidTransactionException e) {
+              
+                e.printStackTrace();
+            }
+
+                break;
+// going back to the menu
+        case 4:  MzanziBank menu = new MzanziBank();
+                menu.start();
+        break;
+       }
+       scan.close();
+
+    }
+
+    private void performTransactionWithCheckingAccount() {
+        Scanner scan = new Scanner(System.in);
+        System.out.println("===Performing Transaction with Checkings Account");
+        System.out.println("1. Depost");
+        System.out.println("2. Withdraw");
+        System.out.println("3. Transfer funds");
+        System.out.println("4. Bank to menu");
+        System.out.println("Please enter your option:");
+        int op = scan.nextInt();
+        switch(op)
+        {
+         //depositing into savings Account
+         case 1: System.out.println("Enter the amount you want to deposit: R");
+         double damount = scan.nextInt();
+         CheckingAccount dep = new CheckingAccount("22589", 700, 15);
+                 dep.deposit(damount);
+         break;
+ 
+         // withdrawing from savingsaccount
+         case 2:System.out.print("Enter amount to withdraw: ");
+         double withdrawAmount = scan.nextInt();
+         CheckingAccount withdrawAcc= new CheckingAccount("22589", 700, 15);
+             try {
+                 withdrawAcc.withdraw(withdrawAmount);
+             } catch (InsufficientFundsException e) {
+                 e.printStackTrace();
+             } catch (InvalidTransactionException e) {
+                 e.printStackTrace();
+             }
+         break;
+             
+ 
+ // Transfer funds from CHeckings into savingsAccount
+         case 3:System.out.print("Enter amount to transfer: ");
+         double transferfunds = scan.nextInt();
+             CheckingAccount checkingAccount = new CheckingAccount("255 447 89", 1005, 1001);
+     SavingsAccount transferOp = new SavingsAccount("2540 254 25", 00, 2);
+ 
+             try {
+                 transferOp.transferFunds(checkingAccount, transferfunds);
+             } catch (InsufficientFundsException e) {
+               
+                 e.printStackTrace();
+             } catch (InvalidTransactionException e) {
+               
+                 e.printStackTrace();
+             }
+ 
+                 break;
+ // going back to the menu
+         case 4:  MzanziBank menu = new MzanziBank();
+                 menu.start();
+         break;
+        }
+        scan.close();
+ 
+     }
+    
+}
+
+
+
+//Accounts class
+interface BankingOperations<T extends BankAccount>{
+    void checkBalance();
+    void deposit(double amount);
+    void withdraw(double amount) throws InsufficientFundsException, InvalidTransactionException;
+    void transferFunds(BankAccount destination, double amount) throws InsufficientFundsException, InvalidTransactionException;
+}
+
+class BankAccount implements BankingOperations<BankAccount> {
+    private String accountNumber;
+    protected double balance;
+
+    public BankAccount(String accountNumber, double initialBalance) {
+        this.accountNumber = accountNumber;
+        this.balance = initialBalance;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    @Override
+    public void checkBalance() {
+        System.out.println("Account Number: " + accountNumber);
+        System.out.println("Current Balance: R" + balance);
+    }
+
+    @Override
+    public void deposit(double amount) {
+        if (amount <= 0) {
+            System.out.println("Invalid amount for deposit.");
+            return;
+        }
+        balance += amount;
+        System.out.println("Deposited: R" + amount);
+        System.out.println("Current Balance: R" + balance);
+    }
+
+    @Override
+    public void withdraw(double amount) throws InsufficientFundsException, InvalidTransactionException {
+        if (amount <= 0) {
+            throw new InvalidTransactionException("Invalid amount for withdrawal.");
+        }
+        if (amount > balance) {
+            throw new InsufficientFundsException("Insufficient funds.");
+        }
+        balance -= amount;
+        System.out.println("Withdrawn: R" + amount);
+        System.out.println("Current Balance: R" + balance);
+    }
+
+    @Override
+    public void transferFunds(BankAccount destination, double amount) throws InsufficientFundsException, InvalidTransactionException {
+        if (amount <= 0) {
+            throw new InvalidTransactionException("Invalid amount for transfer.");
+        }
+        if (amount > balance) {
+            throw new InsufficientFundsException("Insufficient funds for transfer.");
+        }
+        balance -= amount;
+        destination.deposit(amount);
+        System.out.println("Transferred: R" + amount + " to Account " + destination.getAccountNumber());
+        System.out.println("Current Balance: R" + balance);
+    }
+}
+
+class SavingsAccount extends BankAccount {
+    private double interestRate;
+
+    public SavingsAccount(String accountNumber, double initialBalance, double interestRate) {
+        super(accountNumber, initialBalance);
+        this.interestRate = interestRate;
+    }
+
+    public void addInterest() {
+        double interest = balance * interestRate / 100;
+        balance += interest;
+        System.out.println("Interest Added: R" + interest);
+        System.out.println("Current Balance: R" + balance);
+    }
+}
+
+class CheckingAccount extends BankAccount {
+    private double overdraftLimit;
+
+    public CheckingAccount(String accountNumber, double initialBalance, double overdraftLimit) {
+        super(accountNumber, initialBalance);
+        this.overdraftLimit = overdraftLimit;
+    }
+
+    @Override
+    public void withdraw(double amount) throws InsufficientFundsException, InvalidTransactionException {
+        if (amount <= 0) {
+            throw new InvalidTransactionException("Invalid amount for withdrawal.");
+        }
+        if (amount > balance + overdraftLimit) {
+            throw new InsufficientFundsException("Exceeds overdraft limit.");
+        }
+        balance -= amount;
+        System.out.println("Withdrawn: R" + amount);
+        System.out.println("Current Balance: R" + balance);
+    }
+}
+
+class InsufficientFundsException extends Exception {
+    public InsufficientFundsException(String message) {
+        super(message);
+    }
+}
+
+class InvalidTransactionException extends Exception {
+    public InvalidTransactionException(String message) {
+        super(message);
+    }
+}
+
+
+
+
+
