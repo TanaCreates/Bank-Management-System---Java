@@ -1,0 +1,37 @@
+public static void viewAccount(int userId) {
+            try {
+               Connection connection = getConnection();
+                String query = "SELECT * FROM transaction_details WHERE user_id = ?";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, userId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+        
+                System.out.println("=== Viewing Account ===");
+                boolean found = false;
+                while (resultSet.next()) {
+                    // Retrieve values from the result set
+                    String accountNumber = resultSet.getString("account_number");
+                    double balance = resultSet.getDouble("balance");
+                    // Assuming you have 'lastName' column in 'userdetails' table
+                    String lastName = resultSet.getString("lastName");
+        
+                    // Print account details
+                    System.out.println("Account number: " + accountNumber);
+                    System.out.println("Balance : R" + balance);
+                    System.out.println("Last Name: " + lastName);
+                    
+                    // Set found to true if at least one account is found
+                    found = true;
+                }
+                
+                if (!found) {
+                    System.out.println("No accounts found for this user.");
+                }
+        
+                // Close resources
+                resultSet.close();
+                preparedStatement.close();
+            } catch (SQLException e) {
+                System.out.println("Error viewing account: " + e.getMessage());
+            }
+        }
