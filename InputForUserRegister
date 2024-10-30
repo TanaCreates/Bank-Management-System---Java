@@ -1,0 +1,27 @@
+    private void registerUser(Scanner scanner) {
+        
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+        System.out.println("Please enter your first name:");
+        String fname = scanner.nextLine();
+        System.out.println("Please enter your last name:");
+        String lname = scanner.nextLine();
+        System.out.println("Please enter your identification number:");
+        String idnum = scanner.nextLine();
+
+        if (!users.containsKey(username)) {
+            User user = new User(username, password);
+            users.put(username, user);
+            System.out.println("Registration successful.");
+            int userId = generateRandomUserId();
+            System.out.println("Your new user id is: " + userId);
+
+            MzanziBank.insertUser(userId, lname, idnum,username, password); 
+
+        } else {
+            System.out.println("Username already exists. Please choose another one.");
+        }
+    }
+
