@@ -1,0 +1,19 @@
+       // Insert transaction information into the database
+    public static void insertTransaction(int userID, String accountNumber, String transactionType, double amount, double balance) {
+        String query = "INSERT INTO transaction_details (transaction_id, user_id, account_number, transaction_type, amount, balance) VALUES (?, ?, ?, ?, ?)";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+        	statement.setInt(1, userID);
+            statement.setString(2, accountNumber);
+            statement.setString(3, transactionType);
+            statement.setDouble(4, amount);
+            statement.setDouble(5, balance);
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("Transaction recorded successfully!");
+            } else {
+                System.out.println("Failed to record transaction.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error recording transaction: " + e.getMessage());}
+        }
