@@ -1,0 +1,61 @@
+    private void performTransactionWithCheckingAccount() {
+        Scanner scan = new Scanner(System.in);
+        System.out.println("===Performing Transaction with Checkings Account");
+        System.out.println("1. Depost");
+        System.out.println("2. Withdraw");
+        System.out.println("3. Transfer funds");
+        System.out.println("4. Bank to menu");
+        System.out.println("Please enter your option:");
+        int op = scan.nextInt();
+        switch(op)
+        {
+         //depositing into savings Account
+         case 1: System.out.println("Enter the amount you want to deposit: R");
+         double damount = scan.nextInt();
+         CheckingAccount dep = new CheckingAccount("22589", 700, 15);
+                 dep.deposit(damount);
+         break;
+ 
+         // withdrawing from savingsaccount
+         case 2:System.out.print("Enter amount to withdraw: ");
+         double withdrawAmount = scan.nextInt();
+         CheckingAccount withdrawAcc= new CheckingAccount("22589", 700, 15);
+             try {
+                 withdrawAcc.withdraw(withdrawAmount);
+             } catch (InsufficientFundsException e) {
+                 e.printStackTrace();
+             } catch (InvalidTransactionException e) {
+                 e.printStackTrace();
+             }
+         break;
+             
+ 
+ // Transfer funds from CHeckings into savingsAccount
+         case 3:System.out.print("Enter amount to transfer: ");
+         double transferfunds = scan.nextInt();
+             CheckingAccount checkingAccount = new CheckingAccount("255 447 89", 1005, 1001);
+     SavingsAccount transferOp = new SavingsAccount("2540 254 25", 00, 2);
+ 
+             try {
+                 transferOp.transferFunds(checkingAccount, transferfunds);
+             } catch (InsufficientFundsException e) {
+               
+                 e.printStackTrace();
+             } catch (InvalidTransactionException e) {
+               
+                 e.printStackTrace();
+             }
+ 
+                 break;
+ // going back to the menu
+         case 4:  MzanziBank menu = new MzanziBank();
+                 menu.start();
+         break;
+        }
+        scan.close();
+ 
+     }
+    
+}
+
+
