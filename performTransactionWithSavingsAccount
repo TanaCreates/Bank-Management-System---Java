@@ -1,0 +1,92 @@
+class Transactions {
+    Scanner choice = new Scanner(System.in);
+
+    void transactionMenu() {
+        System.out.println("==== Perform Transaction ====");
+        System.out.println(" 1. Perform transaction with Savings Account");
+        System.out.println(" 2. Perform transaction with Checking Account");
+        System.out.println(" 3. Go back to main menu");
+
+        System.out.println("Enter your choice:");
+        int option = choice.nextInt();
+        choice.nextLine(); // Consume newline character
+
+        switch (option) {
+            case 1:
+               BankAccount view = new BankAccount("22589", 700);
+               view.checkBalance();
+                performTransactionWithSavingsAccount();
+                break;
+            case 2:
+                performTransactionWithCheckingAccount();
+                break;
+            case 3:
+            MzanziBank menu = new MzanziBank();
+            menu.start();
+                break;
+            default:
+                System.out.println("Invalid option. Please try again.");
+                break;
+        }
+    }
+
+    private void performTransactionWithSavingsAccount() {
+
+        Scanner scan = new Scanner(System.in);
+       System.out.println("===Performing Transaction with Savings Account");
+       System.out.println("1. Depost");
+       System.out.println("2. Withdraw");
+       System.out.println("3. Transfer funds");
+       System.out.println("4. Bank to menu");
+       System.out.println("Please enter your option:");
+       int op = scan.nextInt();
+       switch(op)
+       {
+        //depositing into savings Account
+        case 1: System.out.println("Enter the amount you want to deposit: R");
+        
+        double damount = scan.nextInt();
+        SavingsAccount dep = new SavingsAccount("22589", 700, 15);
+                dep.deposit(damount);
+        break;
+
+        // withdrawing from savingsaccount
+        case 2:System.out.print("Enter amount to withdraw: ");
+        double withdrawAmount =scan.nextInt();
+        SavingsAccount withdrawAcc = new SavingsAccount("AccountNumber", 7000, 2);
+            try {
+                withdrawAcc.withdraw(withdrawAmount);
+            } catch (InsufficientFundsException e) {
+                e.printStackTrace();
+            } catch (InvalidTransactionException e) {
+                e.printStackTrace();
+            }
+        break;
+            
+
+// Transfer funds from SavingsAccount to CheckingAccount
+        case 3:System.out.print("Enter amount to transfer: ");
+        double transferfunds = scan.nextInt();
+        SavingsAccount transferOp = new SavingsAccount("2540 254 25", 00, 2);
+        CheckingAccount checkingAccount = new CheckingAccount("255 447 89", 1005, 1001);
+
+            try {
+                transferOp.transferFunds(checkingAccount, transferfunds);
+            } catch (InsufficientFundsException e) {
+              
+                e.printStackTrace();
+            } catch (InvalidTransactionException e) {
+              
+                e.printStackTrace();
+            }
+
+                break;
+// going back to the menu
+        case 4:  MzanziBank menu = new MzanziBank();
+                menu.start();
+        break;
+       }
+       scan.close();
+
+    }
+
